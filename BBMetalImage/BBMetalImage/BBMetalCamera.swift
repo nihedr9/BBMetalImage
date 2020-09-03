@@ -91,6 +91,10 @@ public class BBMetalCamera: NSObject {
         return d
     }
     
+    public var isTorshOn: Bool {
+        camera.torchMode == .on
+    }
+    
     private var capturedFrameCount: Int
     private var totalCaptureFrameTime: Double
     private let ignoreInitialFrameCount: Int
@@ -452,6 +456,30 @@ public class BBMetalCamera: NSObject {
             connection.isVideoOrientationSupported else { return false }
         connection.videoOrientation = .portrait
         
+        return true
+    }
+    
+    /// Turn device torsh (on, off, auto)
+    ///
+    /// - Returns: true if succeed, or false if fail
+    @discardableResult
+    public func setCameraTorsh(mode: AVCaptureDevice.TorchMode) -> Bool {
+        guard camera.hasTorch, camera.torchMode != mode else {
+            return false
+        }
+        lock.wait()
+        defer {
+            lock.signal()
+        }
+        do {
+            try camera.lockForConfiguration()
+            defer {
+                camera.unlockForConfiguration()
+            }
+            camera.torchMode = mode
+        } catch {
+            print("Error for camera lockForConfiguration: \(error)")
+        }
         return true
     }
     
