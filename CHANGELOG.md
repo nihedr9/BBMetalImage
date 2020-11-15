@@ -1,5 +1,30 @@
 # Change Log
 
+## [1.1.8](https://github.com/Silence-GitHub/BBMetalImage/releases/tag/1.1.8) - 2020-10-23
+
+### Fix
+
+- Camera capturing photo texture wrong color bug
+
+## [1.1.7](https://github.com/Silence-GitHub/BBMetalImage/releases/tag/1.1.7) - 2020-10-07
+
+### Add
+
+- BBMetalCamera preprocessVideo block
+- BBMetalCamera capturePhoto(completion:) function
+- BBMetalVideoSource preprocessVideo block
+- BBMetalTransformFilter
+
+### Change
+
+- BBMetalCamera takePhoto() function
+- BBMetalBaseFilter addCompletedHandler(_:) function
+
+### Fix
+
+- Camera video frame camera position nil bug
+- BBMetalVideoSource orientation bug
+
 ## [1.1.6](https://github.com/Silence-GitHub/BBMetalImage/releases/tag/1.1.6) - 2020-08-16
 
 ### Add

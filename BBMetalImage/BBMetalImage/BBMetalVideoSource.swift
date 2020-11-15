@@ -14,13 +14,9 @@ public typealias BBMetalVideoSourceCompletion = (Bool) -> Void
 /// Video source reading video frame and providing Metal texture
 public class BBMetalVideoSource {
     /// Image consumers
-    public var consumers: [BBMetalImageConsumer] {
-        lock.wait()
-        let c = _consumers
-        lock.signal()
-        return c
-    }
-    private var _consumers: [BBMetalImageConsumer]
+    public var consumers: [BBMetalImageConsumer] { return transformFilter.consumers }
+    
+    private var transformFilter: BBMetalTransformFilter!
     
     private let url: URL
     private let lock: DispatchSemaphore
@@ -31,6 +27,22 @@ public class BBMetalVideoSource {
     
     private var audioOutput: AVAssetReaderTrackOutput!
     private var lastAudioBuffer: CMSampleBuffer?
+    
+    /// A block to call before processing each video sample buffer
+    public var preprocessVideo: ((CMSampleBuffer) -> Void)? {
+        get {
+            lock.wait()
+            let p = _preprocessVideo
+            lock.signal()
+            return p
+        }
+        set {
+            lock.wait()
+            _preprocessVideo = newValue
+            lock.signal()
+        }
+    }
+    private var _preprocessVideo: ((CMSampleBuffer) -> Void)?
     
     /// Audio consumer processing audio sample buffer.
     /// Set this property to nil (default value) if not processing audio.
@@ -102,7 +114,6 @@ public class BBMetalVideoSource {
     private var textureCache: CVMetalTextureCache!
     
     public init?(url: URL) {
-        _consumers = []
         self.url = url
         lock = DispatchSemaphore(value: 1)
         _playWithVideoRate = false
@@ -116,6 +127,9 @@ public class BBMetalVideoSource {
             return nil
         }
         #endif
+        
+        transformFilter = BBMetalTransformFilter()
+        transformFilter.add(source: self)
     }
     
     /// Starts reading and processing video frame
@@ -130,25 +144,22 @@ public class BBMetalVideoSource {
             return
         }
         let asset = AVAsset(url: url)
-        asset.loadValuesAsynchronously(forKeys: ["tracks"]) { [weak self] in
-            guard let self = self else { return }
-            if asset.statusOfValue(forKey: "tracks", error: nil) == .loaded,
-                asset.tracks(withMediaType: .video).first != nil {
-                DispatchQueue.global().async { [weak self] in
-                    guard let self = self else { return }
-                    self.lock.wait()
-                    self.asset = asset
-                    if self.prepareAssetReader() {
-                        self.lock.signal()
-                        self.processAsset(progress: progress, completion: completion)
-                    } else {
-                        self.reset()
-                        self.lock.signal()
-                    }
+        if let track = asset.tracks(withMediaType: .video).first {
+            transformFilter.transform = track.preferredTransform
+            DispatchQueue.global().async { [weak self] in
+                guard let self = self else { return }
+                self.lock.wait()
+                self.asset = asset
+                if self.prepareAssetReader() {
+                    self.lock.signal()
+                    self.processAsset(progress: progress, completion: completion)
+                } else {
+                    self.reset()
+                    self.lock.signal()
                 }
-            } else {
-                self.safeReset()
             }
+        } else {
+            self.safeReset()
         }
     }
     
@@ -213,17 +224,23 @@ public class BBMetalVideoSource {
             lock.signal()
             return
         }
-        lock.signal()
         
         // Read and process video buffer
-        lock.wait()
         let useVideoRate = _playWithVideoRate
         var startTime: Double = _benchmark ? CACurrentMediaTime() : 0
         var sleepTime: Double = 0
         while let reader = assetReader,
             reader.status == .reading,
-            let sampleBuffer = videoOutput.copyNextSampleBuffer(),
-            let texture = texture(with: sampleBuffer) {
+            let sampleBuffer = videoOutput.copyNextSampleBuffer() {
+                
+                if let preprocessVideo = _preprocessVideo {
+                    lock.signal()
+                    preprocessVideo(sampleBuffer)
+                    lock.wait()
+                }
+                
+                guard let texture = texture(with: sampleBuffer) else { break }
+                
                 let sampleFrameTime = CMSampleBufferGetOutputPresentationTimeStamp(sampleBuffer)
                 if useVideoRate {
                     if let lastFrameTime = lastSampleFrameTime,
@@ -240,7 +257,6 @@ public class BBMetalVideoSource {
                     lastSampleFrameTime = sampleFrameTime
                     lastActualPlayTime = CACurrentMediaTime()
                 }
-                let consumers = _consumers
                 
                 // Read and process audio buffer
                 // Let video buffer go faster than audio buffer
@@ -273,7 +289,7 @@ public class BBMetalVideoSource {
                 let output = BBMetalDefaultTexture(metalTexture: texture.metalTexture,
                                                    sampleTime: sampleFrameTime,
                                                    cvMetalTexture: texture.cvMetalTexture)
-                for consumer in consumers { consumer.newTextureAvailable(output, from: self) }
+                transformFilter.newTextureAvailable(output, from: self)
                 progress?(sampleFrameTime)
                 
                 // Transmit audio buffer
@@ -344,38 +360,18 @@ public class BBMetalVideoSource {
 extension BBMetalVideoSource: BBMetalImageSource {
     @discardableResult
     public func add<T: BBMetalImageConsumer>(consumer: T) -> T {
-        lock.wait()
-        _consumers.append(consumer)
-        lock.signal()
-        consumer.add(source: self)
-        return consumer
+        return transformFilter.add(consumer: consumer)
     }
     
     public func add(consumer: BBMetalImageConsumer, at index: Int) {
-        lock.wait()
-        _consumers.insert(consumer, at: index)
-        lock.signal()
-        consumer.add(source: self)
+        transformFilter.add(consumer: consumer, at: index)
     }
     
     public func remove(consumer: BBMetalImageConsumer) {
-        lock.wait()
-        if let index = _consumers.firstIndex(where: { $0 === consumer }) {
-            _consumers.remove(at: index)
-            lock.signal()
-            consumer.remove(source: self)
-        } else {
-            lock.signal()
-        }
+        transformFilter.remove(consumer: consumer)
     }
     
     public func removeAllConsumers() {
-        lock.wait()
-        let consumers = _consumers
-        _consumers.removeAll()
-        lock.signal()
-        for consumer in consumers {
-            consumer.remove(source: self)
-        }
+        transformFilter.removeAllConsumers()
     }
 }

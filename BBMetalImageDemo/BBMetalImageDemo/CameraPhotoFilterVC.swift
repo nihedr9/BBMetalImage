@@ -43,9 +43,31 @@ class CameraPhotoFilterVC: UIViewController {
         camera.addMetadataOutput(with: [.face])
         camera.metadataObjectDelegate = self
         
-        camera.canTakePhoto = true
-        camera.photoDelegate = self
-        camera.add(consumer: BBMetalLookupFilter(lookupTable: UIImage(named: "test_lookup")!.bb_metalTexture!))
+        let filter = BBMetalLookupFilter(lookupTable: UIImage(named: "test_lookup")!.bb_metalTexture!)
+        
+        filter.addCompletedHandler { [weak self] info in
+            guard info.isCameraPhoto else { return }
+            switch info.result {
+            case let .success(texture):
+                let image = texture.bb_image
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                    guard let self = self else { return }
+                    let imageView = UIImageView(frame: self.metalView.frame)
+                    imageView.contentMode = .scaleAspectFill
+                    imageView.clipsToBounds = true
+                    imageView.image = image
+                    self.view.addSubview(imageView)
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                        imageView.removeFromSuperview()
+                    }
+                }
+            case let .failure(error):
+                print("Error: \(error)")
+            }
+        }
+        
+        camera.add(consumer: filter)
             .add(consumer: metalView)
     }
     
@@ -64,28 +86,26 @@ class CameraPhotoFilterVC: UIViewController {
     }
     
     @objc private func clickPhotoButton(_ button: UIButton) {
-        camera.takePhoto()
-    }
-}
-
-extension CameraPhotoFilterVC: BBMetalCameraPhotoDelegate {
-    func camera(_ camera: BBMetalCamera, didOutput texture: MTLTexture) {
-        // In main thread
-        let filter = BBMetalLookupFilter(lookupTable: UIImage(named: "test_lookup")!.bb_metalTexture!)
-        let imageView = UIImageView(frame: metalView.frame)
-        imageView.contentMode = .scaleAspectFill
-        imageView.clipsToBounds = true
-        imageView.image = filter.filteredImage(with: texture.bb_image!)
-        view.addSubview(imageView)
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-            imageView.removeFromSuperview()
+        camera.capturePhoto { [weak self] info in
+            switch info.result {
+            case let .success(texture):
+                let image = texture.bb_image
+                DispatchQueue.main.async {
+                    guard let self = self else { return }
+                    let imageView = UIImageView(frame: self.metalView.frame)
+                    imageView.contentMode = .scaleAspectFill
+                    imageView.clipsToBounds = true
+                    imageView.image = image
+                    self.view.addSubview(imageView)
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                        imageView.removeFromSuperview()
+                    }
+                }
+            case let .failure(error):
+                print("Error: \(error)")
+            }
         }
-    }
-    
-    func camera(_ camera: BBMetalCamera, didFail error: Error) {
-        // In main thread
-        print("Fail taking photo. Error: \(error)")
     }
 }
 
