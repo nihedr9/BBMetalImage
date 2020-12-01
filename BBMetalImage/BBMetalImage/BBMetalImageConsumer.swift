@@ -55,18 +55,20 @@ public protocol BBMetalAudioConsumer: AnyObject {
     func newAudioSampleBufferAvailable(_ sampleBuffer: CMSampleBuffer)
 }
 
-struct BBMetalDefaultTexture: BBMetalTexture {
-    var metalTexture: MTLTexture
-    var sampleTime: CMTime?
-    var cameraPosition: AVCaptureDevice.Position?
-    var isCameraPhoto: Bool
-    let cvMetalTexture: CVMetalTexture? // Hold CVMetalTexture to prevent stuttering. https://stackoverflow.com/questions/43550769/holding-onto-a-mtltexture-from-a-cvimagebuffer-causes-stuttering
+public struct BBMetalDefaultTexture: BBMetalTexture {
+    public var metalTexture: MTLTexture
+    public var sampleTime: CMTime?
+    public var cameraPosition: AVCaptureDevice.Position?
+    public var isCameraPhoto: Bool
+    public let cvMetalTexture: CVMetalTexture? // Hold CVMetalTexture to prevent stuttering. https://stackoverflow.com/questions/43550769/holding-onto-a-mtltexture-from-a-cvimagebuffer-causes-stuttering
     
-    init(metalTexture: MTLTexture,
-         sampleTime: CMTime? = nil,
-         cameraPosition: AVCaptureDevice.Position? = nil,
-         isCameraPhoto: Bool = false,
-         cvMetalTexture: CVMetalTexture? = nil) {
+    public init(
+        metalTexture: MTLTexture,
+        sampleTime: CMTime? = nil,
+        cameraPosition: AVCaptureDevice.Position? = nil,
+        isCameraPhoto: Bool = false,
+        cvMetalTexture: CVMetalTexture? = nil
+    ) {
         self.metalTexture = metalTexture
         self.sampleTime = sampleTime
         self.cameraPosition = cameraPosition
@@ -75,13 +77,13 @@ struct BBMetalDefaultTexture: BBMetalTexture {
     }
 }
 
-struct BBMetalVideoTextureItem {
-    let metalTexture: MTLTexture
-    let cvMetalTexture: CVMetalTexture
+public struct BBMetalVideoTextureItem {
+    public let metalTexture: MTLTexture
+    public let cvMetalTexture: CVMetalTexture
 }
 
 // For simulator compile
 #if targetEnvironment(simulator)
-typealias CVMetalTexture = AnyClass
-typealias CVMetalTextureCache = AnyClass
+public typealias CVMetalTexture = AnyClass
+public typealias CVMetalTextureCache = AnyClass
 #endif

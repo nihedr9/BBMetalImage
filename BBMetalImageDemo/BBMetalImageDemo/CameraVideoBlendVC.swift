@@ -1,16 +1,16 @@
 //
-//  VideoFilterVC.swift
+//  CameraVideoBlendVC.swift
 //  BBMetalImageDemo
 //
-//  Created by Kaibo Lu on 4/25/19.
-//  Copyright © 2019 Kaibo Lu. All rights reserved.
+//  Created by Kaibo Lu on 11/24/20.
+//  Copyright © 2020 Kaibo Lu. All rights reserved.
 //
 
 import UIKit
-import AVFoundation
 import BBMetalImage
 
-class VideoFilterVC: UIViewController {
+class CameraVideoBlendVC: UIViewController {
+    private var camera: BBMetalCamera!
     private var videoSource: BBMetalVideoSource!
     private var filter: BBMetalBaseFilter!
     private var metalView: BBMetalView!
@@ -21,14 +21,16 @@ class VideoFilterVC: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         view.backgroundColor = .gray
+        
+        camera = BBMetalCamera(sessionPreset: .hd1920x1080)
         
         let url = Bundle.main.url(forResource: "test_video", withExtension: "mov")!
         videoSource = BBMetalVideoSource(url: url)
         videoSource.playWithVideoRate = true
         
-        filter = BBMetalColorInversionFilter()
+        filter = BBMetalAlphaBlendFilter(mixturePercent: 0.5)
         
         let x: CGFloat = 10
         let width: CGFloat = view.bounds.width - 20
@@ -61,31 +63,35 @@ class VideoFilterVC: UIViewController {
         let outputUrl = URL(fileURLWithPath: filePath)
         videoWriter = BBMetalVideoWriter(url: outputUrl, frameSize: BBMetalIntSize(width: 1080, height: 1920))
         
-        videoSource.audioConsumer = videoWriter
-        videoSource.add(consumer: metalView)
-        videoSource.add(consumer: videoWriter)
+        camera.audioConsumer = videoWriter
+        
+        camera.add(consumer: metalView)
+        camera.add(consumer: videoWriter)
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        camera.start()
         videoSource.start()
     }
     
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
+        camera.stop()
         videoSource.cancel()
     }
     
     @objc private func clickFilterButton(_ button: UIButton) {
         button.isSelected = !button.isSelected
+        camera.removeAllConsumers()
         videoSource.removeAllConsumers()
         filter.removeAllConsumers()
         if button.isSelected {
-            videoSource.add(consumer: filter).add(consumer: metalView)
-            filter.add(consumer: videoWriter)
+            camera.add(consumer: filter).add(consumer: metalView)
+            videoSource.add(consumer: filter).add(consumer: videoWriter)
         } else {
-            videoSource.add(consumer: metalView)
-            videoSource.add(consumer: videoWriter)
+            camera.add(consumer: metalView)
+            camera.add(consumer: videoWriter)
         }
     }
     
