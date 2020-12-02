@@ -258,7 +258,7 @@ public class BBMetalCamera: NSObject {
         super.init()
         
         guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position),
-            let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice) else { return nil }
+              let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice) else { return nil }
         
         session = AVCaptureSession()
         session.beginConfiguration()
@@ -285,9 +285,9 @@ public class BBMetalCamera: NSObject {
         videoOutput = videoDataOutput
         
         guard let connection = videoDataOutput.connections.first,
-            connection.isVideoOrientationSupported else {
-                session.commitConfiguration()
-                return nil
+              connection.isVideoOrientationSupported else {
+            session.commitConfiguration()
+            return nil
         }
         connection.videoOrientation = .portrait
         
@@ -315,10 +315,10 @@ public class BBMetalCamera: NSObject {
         defer { session.commitConfiguration() }
         
         guard let audioDevice = AVCaptureDevice.default(.builtInMicrophone, for: .audio, position: .unspecified),
-            let input = try? AVCaptureDeviceInput(device: audioDevice),
-            session.canAddInput(input) else {
-                print("Can not add audio input")
-                return false
+              let input = try? AVCaptureDeviceInput(device: audioDevice),
+              session.canAddInput(input) else {
+            print("Can not add audio input")
+            return false
         }
         session.addInput(input)
         audioInput = input
@@ -454,7 +454,7 @@ public class BBMetalCamera: NSObject {
     public func takePhoto() {
         lock.wait()
         if let output = photoOutput,
-            _photoDelegate != nil {
+           _photoDelegate != nil {
             let currentSettings = AVCapturePhotoSettings(format: [kCVPixelBufferPixelFormatTypeKey as String : kCVPixelFormatType_32BGRA])
             output.capturePhoto(with: currentSettings, delegate: self)
         }
@@ -477,7 +477,7 @@ public class BBMetalCamera: NSObject {
         if camera.position == .back { position = .front }
         
         guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position),
-            let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice) else { return false }
+              let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice) else { return false }
         
         session.removeInput(videoInput)
         
@@ -490,7 +490,7 @@ public class BBMetalCamera: NSObject {
         videoInput = videoDeviceInput
         
         guard let connection = videoOutput.connections.first,
-            connection.isVideoOrientationSupported else { return false }
+              connection.isVideoOrientationSupported else { return false }
         connection.videoOrientation = .portrait
         
         return true
@@ -535,10 +535,10 @@ public class BBMetalCamera: NSObject {
             for format in camera.formats {
                 let newDimensions = CMVideoFormatDescriptionGetDimensions(format.formatDescription)
                 if dimensions.width == newDimensions.width,
-                    dimensions.height == newDimensions.height {
+                   dimensions.height == newDimensions.height {
                     for range in format.videoSupportedFrameRateRanges {
                         if range.maxFrameRate >= frameRate,
-                            range.minFrameRate <= frameRate {
+                           range.minFrameRate <= frameRate {
                             targetFormat = format
                             break
                         }
@@ -651,7 +651,7 @@ extension BBMetalCamera: AVCaptureVideoDataOutputSampleBufferDelegate, AVCapture
             let currentAudioConsumer = _audioConsumer
             lock.signal()
             if !paused,
-                let consumer = currentAudioConsumer {
+               let consumer = currentAudioConsumer {
                 consumer.newAudioSampleBufferAvailable(sampleBuffer)
             }
             return
@@ -728,7 +728,9 @@ extension BBMetalCamera: AVCaptureVideoDataOutputSampleBufferDelegate, AVCapture
     }
     
     public func captureOutput(_ output: AVCaptureOutput, didDrop sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+        #if DEBUG
         print("Camera drops \(output is AVCaptureAudioDataOutput ? "audio" : "video") sample buffer")
+        #endif
     }
     
     private func texture(with sampleBuffer: CMSampleBuffer) -> BBMetalVideoTextureItem? {
@@ -748,8 +750,8 @@ extension BBMetalCamera: AVCaptureVideoDataOutputSampleBufferDelegate, AVCapture
                                                                0,
                                                                &cvMetalTextureOut)
         if result == kCVReturnSuccess,
-            let cvMetalTexture = cvMetalTextureOut,
-            let texture = CVMetalTextureGetTexture(cvMetalTexture) {
+           let cvMetalTexture = cvMetalTextureOut,
+           let texture = CVMetalTextureGetTexture(cvMetalTexture) {
             return BBMetalVideoTextureItem(metalTexture: texture, cvMetalTexture: cvMetalTexture)
         }
         #endif
@@ -771,8 +773,8 @@ extension BBMetalCamera: AVCapturePhotoCaptureDelegate {
             delegate.camera(self, didFail: error)
             
         } else if let sampleBuffer = photoSampleBuffer,
-            let texture = texture(with: sampleBuffer),
-            let rotatedTexture = rotatedTexture(with: texture.metalTexture, angle: 90) {
+                  let texture = texture(with: sampleBuffer),
+                  let rotatedTexture = rotatedTexture(with: texture.metalTexture, angle: 90) {
             // Setting `videoOrientation` of `AVCaptureConnection` dose not work. So rotate texture here.
             delegate.camera(self, didOutput: rotatedTexture)
             
