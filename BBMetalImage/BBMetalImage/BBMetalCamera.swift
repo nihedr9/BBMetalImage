@@ -727,11 +727,7 @@ extension BBMetalCamera: AVCaptureVideoDataOutputSampleBufferDelegate, AVCapture
         }
     }
     
-    public func captureOutput(_ output: AVCaptureOutput, didDrop sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-        #if DEBUG
-        print("Camera drops \(output is AVCaptureAudioDataOutput ? "audio" : "video") sample buffer")
-        #endif
-    }
+    public func captureOutput(_ output: AVCaptureOutput, didDrop sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) { }
     
     private func texture(with sampleBuffer: CMSampleBuffer) -> BBMetalVideoTextureItem? {
         guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return nil }
