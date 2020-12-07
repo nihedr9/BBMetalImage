@@ -36,6 +36,10 @@ public protocol BBMetalCameraMetadataObjectDelegate: AnyObject {
 
 /// Camera capturing image and providing Metal texture
 public class BBMetalCamera: NSObject {
+    
+    /// suqare Video
+    public var isSqaure = false
+    
     /// Image consumers
     public var consumers: [BBMetalImageConsumer] {
         lock.wait()
@@ -727,12 +731,14 @@ extension BBMetalCamera: AVCaptureVideoDataOutputSampleBufferDelegate, AVCapture
         }
     }
     
-    public func captureOutput(_ output: AVCaptureOutput, didDrop sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) { }
+    public func captureOutput(_ output: AVCaptureOutput,
+                              didDrop sampleBuffer: CMSampleBuffer,
+                              from connection: AVCaptureConnection) { }
     
     private func texture(with sampleBuffer: CMSampleBuffer) -> BBMetalVideoTextureItem? {
         guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return nil }
         let width = CVPixelBufferGetWidth(imageBuffer)
-        let height = CVPixelBufferGetHeight(imageBuffer)
+        let height = isSqaure ? width : CVPixelBufferGetHeight(imageBuffer)
         
         #if !targetEnvironment(simulator)
         var cvMetalTextureOut: CVMetalTexture?
