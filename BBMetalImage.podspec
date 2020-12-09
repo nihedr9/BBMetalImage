@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
 s.name         = 'BBMetalImage'
-s.version      = '1.1.9'
+s.version      = '1.2.0'
 s.summary      = 'A Swift library for GPU-accelerated image/video processing based on Metal.'
 
 s.description  = <<-DESC
@@ -23,8 +23,8 @@ s.license      = { :type => 'MIT', :file => 'LICENSE' }
 
 s.author       = { 'Kaibo Lu' => 'lukaibolkb@gmail.com' }
 
-spec.ios.deployment_target = '14.0'
-spec.osx.deployment_target = '11.0'
+s.ios.deployment_target = '14.0'
+s.osx.deployment_target = '11.0'
 
 s.swift_version = '5.0'
 
