@@ -5,7 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "BBMetalImage",
-    platforms: [.iOS(.v10)],
+    platforms: [.iOS("14"), .macOS("11")],
     products: [
         .library(name: "BBMetalImage", targets: ["BBMetalImage"]),
     ],
