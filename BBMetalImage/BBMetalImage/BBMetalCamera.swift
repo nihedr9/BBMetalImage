@@ -261,12 +261,20 @@ public class BBMetalCamera: NSObject {
         
         super.init()
         
-        guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position),
+        let discoverySession = AVCaptureDevice.DiscoverySession(deviceTypes:
+                                                                    [.builtInTrueDepthCamera,
+                                                                     .builtInDualCamera,
+                                                                     .builtInWideAngleCamera],
+                                                                mediaType: .video, position: .unspecified)
+        
+        guard let videoDevice = discoverySession.devices.first,
               let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice) else { return nil }
         
         session = AVCaptureSession()
         session.beginConfiguration()
-        session.sessionPreset = sessionPreset
+        
+        let isPresetSupported = videoDevice.supportsSessionPreset(sessionPreset)
+        session.sessionPreset = isPresetSupported ? sessionPreset : .high
         
         if !session.canAddInput(videoDeviceInput) {
             session.commitConfiguration()
@@ -278,7 +286,8 @@ public class BBMetalCamera: NSObject {
         videoInput = videoDeviceInput
         
         let videoDataOutput = AVCaptureVideoDataOutput()
-        videoDataOutput.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String : kCVPixelFormatType_32BGRA]
+        videoDataOutput.videoSettings = [kCVPixelBufferMetalCompatibilityKey as String: true,
+                                         kCVPixelBufferPixelFormatTypeKey as String : kCVPixelFormatType_32BGRA]
         videoOutputQueue = DispatchQueue(label: "com.Kaibo.BBMetalImage.Camera.videoOutput")
         videoDataOutput.setSampleBufferDelegate(self, queue: videoOutputQueue)
         if !session.canAddOutput(videoDataOutput) {
