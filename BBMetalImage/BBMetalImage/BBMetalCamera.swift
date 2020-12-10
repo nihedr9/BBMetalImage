@@ -261,11 +261,11 @@ public class BBMetalCamera: NSObject {
         
         super.init()
         
-        let discoverySession = AVCaptureDevice.DiscoverySession(deviceTypes:
-                                                                    [.builtInTrueDepthCamera,
-                                                                     .builtInDualCamera,
-                                                                     .builtInWideAngleCamera],
-                                                                mediaType: .video, position: .unspecified)
+        let deviceTypes: [AVCaptureDevice.DeviceType] = [.builtInTrueDepthCamera,
+                                                         .builtInDualCamera,
+                                                         .builtInWideAngleCamera]
+        let discoverySession = AVCaptureDevice.DiscoverySession(deviceTypes:deviceTypes,
+                                                                mediaType: .video, position: position)
         
         guard let videoDevice = discoverySession.devices.first,
               let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice) else { return nil }
@@ -330,7 +330,7 @@ public class BBMetalCamera: NSObject {
         guard let audioDevice = AVCaptureDevice.default(.builtInMicrophone, for: .audio, position: .unspecified),
               let input = try? AVCaptureDeviceInput(device: audioDevice),
               session.canAddInput(input) else {
-            print("Can not add audio input")
+            debugPrint("Can not add audio input")
             return false
         }
         session.addInput(input)
@@ -341,7 +341,7 @@ public class BBMetalCamera: NSObject {
         output.setSampleBufferDelegate(self, queue: outputQueue)
         guard session.canAddOutput(output) else {
             _removeAudioInputAndOutput()
-            print("Can not add audio output")
+            debugPrint("Can not add audio output")
             return false
         }
         session.addOutput(output)
@@ -384,7 +384,7 @@ public class BBMetalCamera: NSObject {
         
         let output = AVCapturePhotoOutput()
         if !session.canAddOutput(output) {
-            print("Can not add photo output")
+            debugPrint("Can not add photo output")
             return false
         }
         session.addOutput(output)
@@ -528,7 +528,7 @@ public class BBMetalCamera: NSObject {
             }
             camera.torchMode = mode
         } catch {
-            print("Error for camera lockForConfiguration: \(error)")
+            debugPrint("Error for camera lockForConfiguration: \(error)")
         }
         return true
     }
@@ -565,11 +565,11 @@ public class BBMetalCamera: NSObject {
                 camera.activeVideoMinFrameDuration = CMTime(value: 1, timescale: CMTimeScale(frameRate))
                 success = true
             } else {
-                print("Can not find valid format for camera frame rate \(frameRate)")
+                debugPrint("Can not find valid format for camera frame rate \(frameRate)")
             }
             camera.unlockForConfiguration()
         } catch {
-            print("Error for camera lockForConfiguration: \(error)")
+            debugPrint("Error for camera lockForConfiguration: \(error)")
         }
         lock.signal()
         return success
@@ -586,7 +586,7 @@ public class BBMetalCamera: NSObject {
             block(camera)
             camera.unlockForConfiguration()
         } catch {
-            print("Error for camera lockForConfiguration: \(error)")
+            debugPrint("Error for camera lockForConfiguration: \(error)")
         }
         lock.signal()
     }

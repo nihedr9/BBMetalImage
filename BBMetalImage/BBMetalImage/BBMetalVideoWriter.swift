@@ -133,12 +133,12 @@ public class BBMetalVideoWriter {
                 return
             }
         } else {
-            print("Should not call \(#function) before last writing operation is finished")
+            debugPrint("Should not call \(#function) before last writing operation is finished")
             return
         }
         if !writer.startWriting() {
             reset()
-            print("Asset writer can not start writing")
+            debugPrint("Asset writer can not start writing")
         }
     }
     
@@ -173,7 +173,7 @@ public class BBMetalVideoWriter {
                 completion?()
             }
         } else {
-            print("Should not call \(#function) while video writer is not writing")
+            debugPrint("Should not call \(#function) while video writer is not writing")
         }
     }
     
@@ -191,14 +191,14 @@ public class BBMetalVideoWriter {
             writer.cancelWriting()
             reset()
         } else {
-            print("Should not call \(#function) while video writer is not writing")
+            debugPrint("Should not call \(#function) while video writer is not writing")
         }
     }
     
     private func prepareAssetWriter() -> Bool {
         writer = try? AVAssetWriter(url: url, fileType: fileType)
         if writer == nil {
-            print("Can not create asset writer")
+            debugPrint("Can not create asset writer")
             return false
         }
         
@@ -208,7 +208,7 @@ public class BBMetalVideoWriter {
         videoInput = AVAssetWriterInput(mediaType: .video, outputSettings: settings)
         videoInput.expectsMediaDataInRealTime = _expectsMediaDataInRealTime
         if !writer.canAdd(videoInput) {
-            print("Asset writer can not add video input")
+            debugPrint("Asset writer can not add video input")
             return false
         }
         writer.add(videoInput)
@@ -225,7 +225,7 @@ public class BBMetalVideoWriter {
             audioInput = AVAssetWriterInput(mediaType: .audio, outputSettings: settings)
             audioInput.expectsMediaDataInRealTime = _expectsMediaDataInRealTime
             if !writer.canAdd(audioInput) {
-                print("Asset writer can not add audio input")
+                debugPrint("Asset writer can not add audio input")
                 return false
             }
             writer.add(audioInput)
@@ -289,7 +289,7 @@ extension BBMetalVideoWriter: BBMetalImageConsumer {
             writer.startSession(atSourceTime: sampleTime)
             guard let pool = videoPixelBufferInput.pixelBufferPool,
                 CVPixelBufferPoolCreatePixelBuffer(nil, pool, &videoPixelBuffer) == kCVReturnSuccess else {
-                    print("Can not create pixel buffer")
+                    debugPrint("Can not create pixel buffer")
                     return
             }
         }
@@ -298,7 +298,7 @@ extension BBMetalVideoWriter: BBMetalImageConsumer {
         guard let commandBuffer = BBMetalDevice.sharedCommandQueue.makeCommandBuffer(),
             let encoder = commandBuffer.makeComputeCommandEncoder() else {
                 CVPixelBufferUnlockBaseAddress(videoPixelBuffer, [])
-                print("Can not create compute command buffer or encoder")
+                debugPrint("Can not create compute command buffer or encoder")
                 return
         }
         
@@ -314,19 +314,19 @@ extension BBMetalVideoWriter: BBMetalImageConsumer {
         // Check status
         guard videoInput.isReadyForMoreMediaData,
             writer.status == .writing else {
-                print("Asset writer or video input is not ready for writing this frame")
+                debugPrint("Asset writer or video input is not ready for writing this frame")
                 return
         }
         
         // Copy data from metal texture to pixel buffer
         guard videoPixelBuffer != nil,
             CVPixelBufferLockBaseAddress(videoPixelBuffer, []) == kCVReturnSuccess else {
-                print("Pixel buffer can not lock base address")
+                debugPrint("Pixel buffer can not lock base address")
                 return
         }
         guard let baseAddress = CVPixelBufferGetBaseAddress(videoPixelBuffer) else {
             CVPixelBufferUnlockBaseAddress(videoPixelBuffer, [])
-            print("Can not get pixel buffer base address")
+            debugPrint("Can not get pixel buffer base address")
             return
         }
         
@@ -366,7 +366,7 @@ extension BBMetalVideoWriter: BBMetalAudioConsumer {
         // Check status
         guard audioInput.isReadyForMoreMediaData,
             writer.status == .writing else {
-                print("Asset writer or audio input is not ready for writing this frame")
+                debugPrint("Asset writer or audio input is not ready for writing this frame")
                 return
         }
         

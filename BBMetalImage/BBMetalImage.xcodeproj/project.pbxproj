@@ -371,6 +371,7 @@
 		4AFD9C64225EF4680000C839 /* BBMetalThresholdSketchFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AFD9C62225EF4680000C839 /* BBMetalThresholdSketchFilter.swift */; };
 		4AFD9C66225EF4780000C839 /* BBMetalThresholdSketchFilter.metal in Sources */ = {isa = PBXBuildFile; fileRef = 4AFD9C65225EF4780000C839 /* BBMetalThresholdSketchFilter.metal */; };
 		4AFD9C67225EF4780000C839 /* BBMetalThresholdSketchFilter.metal in Sources */ = {isa = PBXBuildFile; fileRef = 4AFD9C65225EF4780000C839 /* BBMetalThresholdSketchFilter.metal */; };
+		6021285C25824293008BD21C /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6021285B25824293008BD21C /* Utils.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -572,6 +573,7 @@
 		4AFD9C5F225EE8EE0000C839 /* BBMetalSketchFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBMetalSketchFilter.swift; sourceTree = "<group>"; };
 		4AFD9C62225EF4680000C839 /* BBMetalThresholdSketchFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBMetalThresholdSketchFilter.swift; sourceTree = "<group>"; };
 		4AFD9C65225EF4780000C839 /* BBMetalThresholdSketchFilter.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = BBMetalThresholdSketchFilter.metal; sourceTree = "<group>"; };
+		6021285B25824293008BD21C /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -798,6 +800,7 @@
 				4A273119225874B2002F90F4 /* BBMetalShaderTypes.metal */,
 				4A4CAD8B225285E60058BEB6 /* BBMetalImage.h */,
 				4A4CAD8C225285E60058BEB6 /* Info.plist */,
+				6021285B25824293008BD21C /* Utils.swift */,
 			);
 			path = BBMetalImage;
 			sourceTree = "<group>";
@@ -952,6 +955,7 @@
 				4A4CADA3225288E60058BEB6 /* BBMetalBaseFilter.swift in Sources */,
 				4A16FBE322614E6A00F5511C /* BBMetalFlipFilter.metal in Sources */,
 				4AEDDD072332AD9500838C4E /* BBMetalRGBADilationFilter.metal in Sources */,
+				6021285C25824293008BD21C /* Utils.swift in Sources */,
 				4A2730A52257DBBC002F90F4 /* BBMetalNormalBlendFilter.swift in Sources */,
 				4AFC467A225434F5009D37A1 /* BBMetalExposureFilter.swift in Sources */,
 				4AFD9C60225EE8EE0000C839 /* BBMetalSketchFilter.swift in Sources */,

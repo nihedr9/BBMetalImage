@@ -140,7 +140,7 @@ public class BBMetalVideoSource {
         let isReading = (assetReader != nil)
         lock.signal()
         if isReading {
-            print("Should not call \(#function) while asset reader is reading")
+            debugPrint("Should not call \(#function) while asset reader is reading")
             return
         }
         let asset = AVAsset(url: url)

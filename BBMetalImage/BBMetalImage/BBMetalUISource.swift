@@ -97,7 +97,7 @@ public class BBMetalUISource {
                                           space: BBMetalDevice.sharedColorSpace,
                                           bitmapInfo: bitmapInfo) else {
                 lock.signal()
-                return print("Can not create CGContext for view snapshot")
+                return debugPrint("Can not create CGContext for view snapshot")
             }
                 
             UIGraphicsPushContext(context)
@@ -115,7 +115,7 @@ public class BBMetalUISource {
             
             guard let data = context.data else {
                 lock.signal()
-                return print("Can not get CGContext data for view snapshot")
+                return debugPrint("Can not get CGContext data for view snapshot")
             }
             
             _texture!.replace(region: MTLRegionMake3D(0, 0, 0, renderWidth, renderHeight, 1),

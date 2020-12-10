@@ -74,7 +74,7 @@ public class MultipleVideoSource {
         let isReading = assets.firstIndex { $0.assetReader != nil } != nil
         lock.signal()
         if isReading {
-            print("Should not call \(#function) while asset reader is reading")
+            debugPrint("Should not call \(#function) while asset reader is reading")
             return
         }
         var newAssets: [BBMetalAssetItem] = .init(repeating: BBMetalAssetItem(), count: urls.count)
