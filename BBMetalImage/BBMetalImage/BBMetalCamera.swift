@@ -261,13 +261,7 @@ public class BBMetalCamera: NSObject {
         
         super.init()
         
-        let deviceTypes: [AVCaptureDevice.DeviceType] = [.builtInTrueDepthCamera,
-                                                         .builtInDualCamera,
-                                                         .builtInWideAngleCamera]
-        let discoverySession = AVCaptureDevice.DiscoverySession(deviceTypes:deviceTypes,
-                                                                mediaType: .video, position: position)
-        
-        guard let videoDevice = discoverySession.devices.first,
+        guard let videoDevice = AVCaptureDevice.default(for: .video),
               let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice) else { return nil }
         
         session = AVCaptureSession()
